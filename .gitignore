@@ -1,0 +1,21 @@
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+venv/
+env/
+.venv/
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# docker
+.DS_Store
+
+test.db
