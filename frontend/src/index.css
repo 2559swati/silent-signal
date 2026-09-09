@@ -4,17 +4,24 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  --color-abyss: #07090d;
-  --color-panel: #0d1117;
-  --color-panel-2: #11161d;
-  --color-edge: #1e2632;
-  --color-edge-soft: #161c26;
+  /* Light + colorful theme: airy app background, white panels, soft edges. */
+  --color-abyss: #edf1f8;
+  --color-panel: #ffffff;
+  --color-panel-2: #f5f8fd;
+  --color-edge: #dfe6f1;
+  --color-edge-soft: #eaf0f8;
 
-  --color-crit: #f04452;
-  --color-high: #f59e0b;
-  --color-watch: #eab308;
-  --color-ok: #22c55e;
-  --color-accent: #38bdf8;
+  /* Status palette (unchanged hues -- they pop on white). */
+  --color-crit: #e11d48;
+  --color-high: #d97706;
+  --color-watch: #ca8a04;
+  --color-ok: #16a34a;
+  --color-accent: #0284c7;
+
+  /* Brand gradient stops for colorful accents. */
+  --color-brand-from: #6366f1;
+  --color-brand-via: #0ea5e9;
+  --color-brand-to: #10b981;
 
   --animate-pulse-dot: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-shimmer: shimmer 1.6s linear infinite;
@@ -43,26 +50,53 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   background-color: var(--color-abyss);
-  color: #e6ebf2;
+  background-image:
+    radial-gradient(900px 320px at 12% -80px, rgba(99, 102, 241, 0.14), transparent 60%),
+    radial-gradient(800px 300px at 88% -60px, rgba(16, 185, 129, 0.12), transparent 60%),
+    radial-gradient(700px 280px at 55% -40px, rgba(14, 165, 233, 0.12), transparent 60%);
+  background-attachment: fixed;
+  color: #0f172a;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
+/* Colorful gradient text for headlines / numbers. */
+.text-brand-gradient {
+  background: linear-gradient(92deg, var(--color-brand-from), var(--color-brand-via) 52%, var(--color-brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Gradient tile for the logo / primary icons. */
+.brand-tile {
+  background: linear-gradient(135deg, #6366f1, #0ea5e9 55%, #10b981);
+  border: none;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+}
+
+/* Active navigation pill: soft brand tint with a colorful left bar. */
+.nav-active {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.14), rgba(14, 165, 233, 0.10));
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  box-shadow: inset 3px 0 0 0 #6366f1;
+}
+
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
+  background: rgba(99, 102, 241, 0.25);
 }
 
 .skeleton {
   background: linear-gradient(
     90deg,
-    #131922 25%,
-    #1c2531 50%,
-    #131922 75%
+    #e8edf5 25%,
+    #f4f7fc 50%,
+    #e8edf5 75%
   );
   background-size: 800px 100%;
   animation: var(--animate-shimmer);
@@ -73,7 +107,7 @@ body {
   height: 8px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: #232d3b;
+  background: #c3cede;
   border-radius: 8px;
 }
 .scroll-thin::-webkit-scrollbar-track {
@@ -86,9 +120,279 @@ body {
   border-radius: 4px;
 }
 
+/* ============================================================
+   Operations-center motion system (transform/opacity only).
+   All entrances are fast (150-450ms) and never block interaction.
+   Per-item stagger uses --d (animation-delay), capped by callers.
+   ============================================================ */
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Bars/lines grow from their baseline (GPU-friendly scale). */
+@keyframes grow-x {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes grow-y {
+  from { opacity: 1; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+/* One soft ring echo for newly surfaced attention (runs once). */
+@keyframes soft-ping {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+/* Controlled status pulse: barely-there breathing, never flashing. */
+@keyframes pulse-calm {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.72; transform: scale(0.88); }
+}
+
+/* Active nav: background fades in, accent bar wipes down. */
+@keyframes nav-in {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* Verification check draws itself once (stroke-dashoffset). */
+@keyframes draw-check {
+  from { stroke-dashoffset: 24; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* Route + section entrances. */
+.page-enter {
+  animation: rise-in 220ms cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+.rise-item {
+  animation: rise-in 0.4s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.fade-item {
+  animation: fade-in 0.35s ease-out both;
+  animation-delay: var(--d, 0ms);
+}
+
+.pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Data-driven fills (ScoreBar, distribution, concentration). */
+.bar-grow {
+  transform-origin: left center;
+  animation: grow-x 0.7s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.col-grow {
+  transform-origin: bottom center;
+  animation: grow-y 0.7s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Status dots: stable by default, calm breathing for elevated states. */
+.status-dot {
+  display: inline-block;
+  height: 0.45rem;
+  width: 0.45rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.status-dot-calm {
+  animation: pulse-calm 2.6s ease-in-out infinite;
+}
+
+.status-dot-soft {
+  animation: pulse-calm 3.4s ease-in-out infinite;
+}
+
+.attention-ring {
+  position: relative;
+}
+
+.attention-ring::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid currentColor;
+  opacity: 0;
+  pointer-events: none;
+  animation: soft-ping 1.6s ease-out 0.3s 1 both;
+}
+
+/* High-priority card: slow calm glow via border-color (single element). */
+.attention-calm {
+  animation: border-calm 3.2s ease-in-out infinite;
+}
+
+@keyframes border-calm {
+  0%, 100% { border-color: rgba(244, 63, 94, 0.35); }
+  50% { border-color: rgba(244, 63, 94, 0.7); }
+}
+
+/* Active navigation transition. */
+.nav-enter {
+  animation: nav-in 240ms ease-out both;
+}
+
+/* Verification check draw. */
+.check-draw {
+  stroke-dasharray: 24;
+  animation: draw-check 0.6s ease-out 0.15s both;
+}
+
+/* Card lift + press micro-interactions (transform only). */
+.card-lift {
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out;
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+}
+
+button {
+  transition: transform 120ms ease-out;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* Sidebar scroll affordance: subtle top/bottom fades, quiet scrollbar. */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+}
+
+/* SVG schematic nodes: pop-in with fill-box origin. */
+.node-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop-in 0.45s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Map container entrance. */
+.map-enter {
+  animation: pop-in 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+/* Searched-location pin (distinct from round asset markers). */
+.search-pin {
+  width: 30px;
+  height: 42px;
+  position: relative;
+}
+
+.search-pin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #6366f1, #0ea5e9);
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+.search-pin::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 9px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 12px solid #0ea5e9;
+}
+
+/* Current-location dot (browser geolocation). */
+.geo-pin {
+  width: 30px;
+  height: 42px;
+  position: relative;
+}
+
+.geo-pin::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #0284c7;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 6px rgba(2, 132, 199, 0.25), 0 2px 8px rgba(2, 132, 199, 0.5);
+}
+
+/* Tabular numerals for metrics, scores and table figures. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colorful top edge for primary KPI cards (weight without bulk). */
+.kpi-topline {
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-topline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--kpi-accent, #0ea5e9), transparent 85%);
+  opacity: 0.9;
+}
+
+/* Subtle streetlight-schematic dot grid behind the dashboard hero. */
+.hero-motif {
+  background-image: radial-gradient(rgba(99, 102, 241, 0.20) 1.1px, transparent 1.1px);
+  background-size: 18px 18px;
+  -webkit-mask-image: linear-gradient(to right, black 30%, transparent 75%);
+  mask-image: linear-gradient(to right, black 30%, transparent 75%);
+}
+
+/* Donut segments ease between values; entrance scales from center. */
+.donut-enter {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop-in 0.6s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+.donut-seg {
+  transition: stroke-dasharray 0.7s ease-out, stroke-dashoffset 0.7s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
 }

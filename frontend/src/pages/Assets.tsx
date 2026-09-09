@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { ArrowUpDown } from 'lucide-react';
 import { Card, EmptyState, ErrorState, FusionBadge, RiskBadge, SectionHeader } from '../components/ui';
 import { useFleetContext } from '../state';
@@ -47,8 +47,8 @@ export default function Assets({ query }: { query: string }): ReactNode {
               aria-pressed={filter === f.key}
               className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
                 filter === f.key
-                  ? 'border-sky-500/60 bg-sky-500/15 text-white'
-                  : 'border-edge bg-panel text-slate-400 hover:text-white'
+                  ? 'border-sky-500/60 bg-sky-500/15 text-slate-900'
+                  : 'border-edge bg-panel text-slate-500 hover:text-slate-900'
               }`}
             >
               {f.label}
@@ -58,7 +58,7 @@ export default function Assets({ query }: { query: string }): ReactNode {
         <button
           type="button"
           onClick={() => setSortDesc((d) => !d)}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-edge bg-panel px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-edge bg-panel px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900"
           aria-label={sortDesc ? 'Sort ascending by risk' : 'Sort descending by risk'}
         >
           <ArrowUpDown className="h-3.5 w-3.5" aria-hidden />
@@ -88,10 +88,11 @@ export default function Assets({ query }: { query: string }): ReactNode {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ asset, risk, fusion }) => (
+                {rows.map(({ asset, risk, fusion }, i) => (
                   <tr
                     key={asset.id}
-                    className="cursor-pointer border-b border-edge-soft transition last:border-0 hover:bg-white/[0.03]"
+                    className="fade-item cursor-pointer border-b border-edge-soft transition last:border-0 hover:bg-slate-900/[0.03]"
+                    style={{ '--d': `${Math.min(i * 18, 300)}ms` } as CSSProperties}
                     onClick={() => navigate({ name: 'asset', code: asset.external_code })}
                     tabIndex={0}
                     onKeyDown={(e) => {
@@ -99,13 +100,13 @@ export default function Assets({ query }: { query: string }): ReactNode {
                     }}
                     aria-label={`Open ${asset.external_code}`}
                   >
-                    <td className="px-4 py-3 font-mono font-bold text-white">{asset.external_code}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-slate-900">{asset.external_code}</td>
                     <td className="px-4 py-3">{risk ? <RiskBadge level={risk.risk_level} /> : <span className="text-slate-600">—</span>}</td>
-                    <td className="px-4 py-3 font-extrabold text-white">{risk ? formatPct(risk.risk_score) : '—'}</td>
-                    <td className="px-4 py-3 text-slate-300">{risk ? risk.anomaly_score.toFixed(2) : '—'}</td>
+                    <td className="px-4 py-3 font-extrabold text-slate-900">{risk ? formatPct(risk.risk_score) : '—'}</td>
+                    <td className="px-4 py-3 text-slate-600">{risk ? risk.anomaly_score.toFixed(2) : '—'}</td>
                     <td className="px-4 py-3">{fusion ? <FusionBadge status={fusion.status} /> : <span className="text-slate-600">—</span>}</td>
-                    <td className="px-4 py-3 text-slate-300">{risk ? risk.persistence_score.toFixed(2) : '—'}</td>
-                    <td className="px-4 py-3 text-right text-xs font-bold text-sky-400">Open →</td>
+                    <td className="px-4 py-3 text-slate-600">{risk ? risk.persistence_score.toFixed(2) : '—'}</td>
+                    <td className="px-4 py-3 text-right text-xs font-bold text-sky-600">Open →</td>
                   </tr>
                 ))}
               </tbody>

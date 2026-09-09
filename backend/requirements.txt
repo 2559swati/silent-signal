@@ -7,6 +7,7 @@ httpx==0.25.2
 sqlalchemy==2.0.23
 alembic==1.12.1
 psycopg2-binary==2.9.10
+cryptography==41.0.7
 numpy==1.26.2
 pandas==3.0.5
 scikit-learn>=1.5

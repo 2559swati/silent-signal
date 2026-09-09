@@ -17,8 +17,9 @@ describe('App', () => {
     }
   })
 
-  it('shows the pipeline story on the dashboard', () => {
+  it('shows the operations-center hero on the dashboard', () => {
     render(<App />)
-    expect(screen.getByText(/From weak signals to preventive action/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Predictive Streetlight Operations/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/before failures occur/i)).toBeInTheDocument()
   })
 })

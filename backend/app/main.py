@@ -11,6 +11,9 @@ from app.api.risk import router as risk_router
 from app.api.explanation import router as explanation_router
 from app.api.recommendation import router as recommendation_router
 from app.api.alert import router as alert_router
+from app.api.dashboard import router as dashboard_router
+from app.api.map import router as map_router
+from app.api.security import router as security_router
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -34,6 +37,9 @@ app.include_router(risk_router, prefix="/api")
 app.include_router(explanation_router, prefix="/api")
 app.include_router(recommendation_router, prefix="/api")
 app.include_router(alert_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(map_router, prefix="/api")
+app.include_router(security_router, prefix="/api")
 from app.api.anomaly import router as anomaly_router
 app.include_router(anomaly_router, prefix="/api")
 

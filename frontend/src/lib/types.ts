@@ -104,3 +104,52 @@ export interface ResetResponse {
   sensor_readings: number;
   maintenance_records: number;
 }
+
+export interface MapAsset {
+  asset_id: string;
+  external_code: string;
+  latitude: number | null;
+  longitude: number | null;
+  status: string;
+  fusion_status: string | null;
+  fusion_score: number | null;
+  risk_level: string | null;
+  risk_score: number | null;
+}
+
+export interface MapResponse {
+  assets: MapAsset[];
+  total: number;
+}
+
+export interface FleetAlertItem {
+  asset_id: string;
+  asset_external_code: string;
+  day: string;
+  alert_type: string;
+  severity: string;
+  priority: string;
+  title: string;
+  message: string;
+  risk_score: number;
+  acknowledged: boolean;
+  model_version: string;
+}
+
+export interface FleetAlertsResponse {
+  day: string;
+  alerts: FleetAlertItem[];
+  total_alerts: number;
+  model_version: string;
+}
+
+export interface TEEStatus {
+  mode: string;
+  healthy: boolean;
+  description: string;
+}
+
+export interface AttestationStatus {
+  attested: boolean;
+  pcr0: string | null;
+}

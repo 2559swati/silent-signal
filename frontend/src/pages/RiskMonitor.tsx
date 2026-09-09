@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Card, EmptyState, ErrorState, RiskBadge, SectionHeader, Skeleton } from '../components/ui';
 import { useFleetContext } from '../state';
 import { formatPct, riskRank } from '../lib/fleet';
@@ -36,11 +36,11 @@ export default function RiskMonitor(): ReactNode {
             <div className="skeleton h-44 w-full rounded-xl" aria-hidden />
           ) : (
             <div className="flex h-44 items-end gap-1.5" role="img" aria-label="Risk score histogram">
-              {histogram.map((h) => (
+              {histogram.map((h, i) => (
                 <div key={h.lo} className="group relative flex-1" title={`${h.lo.toFixed(1)}–${h.hi.toFixed(1)}: ${h.count}`}>
                   <div
-                    className="w-full rounded-t-md bg-sky-500/70 transition group-hover:bg-sky-400"
-                    style={{ height: `${Math.max(4, (h.count / maxBucket) * 160)}px` }}
+                    className="col-grow w-full rounded-t-md bg-sky-500/70 transition group-hover:bg-sky-400"
+                    style={{ height: `${Math.max(4, (h.count / maxBucket) * 160)}px`, '--d': `${i * 45}ms` } as CSSProperties}
                   />
                   <span className="mt-1 block text-center text-[9px] text-slate-600">{h.lo.toFixed(1)}</span>
                 </div>
@@ -62,11 +62,11 @@ export default function RiskMonitor(): ReactNode {
               ].map((r) => (
                 <li key={r.label}>
                   <div className="mb-1 flex justify-between text-xs">
-                    <span className="font-bold text-slate-300">{r.label}</span>
-                    <span className="font-mono font-bold text-white">{r.n} · {r.pct.toFixed(1)}%</span>
+                    <span className="font-bold text-slate-600">{r.label}</span>
+                    <span className="font-mono font-bold text-slate-900">{r.n} · {r.pct.toFixed(1)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div className={`h-full rounded-full ${r.color}`} style={{ width: `${r.pct}%` }} />
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className={`bar-grow h-full rounded-full ${r.color}`} style={{ width: `${r.pct}%` }} />
                   </div>
                 </li>
               ))}
@@ -91,18 +91,18 @@ export default function RiskMonitor(): ReactNode {
             <section key={g.level} aria-label={g.title}>
               <SectionHeader title={g.title} subtitle={`${list.length} shown · ${g.hint}`} />
               <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                {list.map(({ asset, risk }) => (
-                  <li key={asset.id}>
+                {list.map(({ asset, risk }, i) => (
+                  <li key={asset.id} className="rise-item" style={{ '--d': `${Math.min(i * 50, 320)}ms` } as CSSProperties}>
                     <button type="button" onClick={() => navigate({ name: 'asset', code: asset.external_code })} className="block w-full text-left">
                       <Card hover className="flex items-center justify-between gap-2 p-3.5">
                         <span>
-                          <span className="block font-mono text-sm font-bold text-white">{asset.external_code}</span>
+                          <span className="block font-mono text-sm font-bold text-slate-900">{asset.external_code}</span>
                           <span className="mt-0.5 block text-xs text-slate-500">
                             persist {risk?.persistence_score.toFixed(2) ?? '—'} · anomaly {risk?.anomaly_score.toFixed(2) ?? '—'}
                           </span>
                         </span>
                         <span className="text-right">
-                          <span className="block font-mono text-lg font-extrabold text-white">
+                          <span className="block font-mono text-lg font-extrabold text-slate-900">
                             {risk ? formatPct(risk.risk_score) : '—'}
                           </span>
                           {risk ? <RiskBadge level={risk.risk_level} /> : null}

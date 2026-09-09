@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import {
   Activity,
   Eye,
@@ -27,23 +27,24 @@ export function PipelineStages({ compact = false }: { compact?: boolean }): Reac
         return (
           <li key={stage.key} className="relative">
             <Card
-              className={`h-full p-3.5 ${compact ? '' : 'animate-rise'}`}
+              className={`h-full p-3.5 ${compact ? '' : 'rise-item'}`}
+              style={compact ? undefined : ({ '--d': `${Math.min(i * 45, 225)}ms` } as CSSProperties)}
             >
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sky-500/25 bg-sky-500/10">
-                  <Icon className="h-4 w-4 text-sky-400" aria-hidden />
+                  <Icon className="h-4 w-4 text-sky-600" aria-hidden />
                 </span>
                 <span className="text-[10px] font-bold tracking-widest text-slate-500">
                   STAGE {i + 1}
                 </span>
               </div>
-              <p className="mt-2 text-sm font-bold text-white">{stage.title}</p>
+              <p className="mt-2 text-sm font-bold text-slate-900">{stage.title}</p>
               <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{stage.desc}</p>
             </Card>
             {i < STAGES.length - 1 ? (
               <span
                 aria-hidden
-                className="absolute top-1/2 -right-2 z-10 hidden h-4 w-4 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-edge bg-panel text-[9px] text-sky-400 xl:flex"
+                className="absolute top-1/2 -right-2 z-10 hidden h-4 w-4 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-edge bg-panel text-[9px] text-sky-600 xl:flex"
               >
                 ›
               </span>
@@ -80,11 +81,11 @@ export function AssetPipeline({ stages }: { stages: { title: string; values: Ass
             <ul className="mt-2 space-y-1.5">
               {stage.values.map((v) => (
                 <li key={v.label} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="flex items-center gap-1.5 text-slate-400">
+                  <span className="flex items-center gap-1.5 text-slate-500">
                     <span className={`h-1.5 w-1.5 rounded-full ${TONE_DOT[v.tone]}`} aria-hidden />
                     {v.label}
                   </span>
-                  <span className="font-bold text-slate-100">{v.value}</span>
+                  <span className="font-bold text-slate-800">{v.value}</span>
                 </li>
               ))}
             </ul>

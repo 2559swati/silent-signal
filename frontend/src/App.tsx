@@ -6,6 +6,8 @@ import AssetDetail from './pages/AssetDetail';
 import RiskMonitor from './pages/RiskMonitor';
 import Explanations from './pages/Explanations';
 import Actions from './pages/Actions';
+import Map from './pages/Map';
+import Security from './pages/Security';
 import Settings from './pages/Settings';
 import { FleetProvider } from './state';
 import { navigate, useRoute, useScrollTopOnRoute } from './lib/router';
@@ -31,6 +33,8 @@ function App(): React.JSX.Element {
         {route.name === 'risk' ? <RiskMonitor /> : null}
         {route.name === 'explanations' ? <Explanations /> : null}
         {route.name === 'actions' ? <Actions /> : null}
+        {route.name === 'map' ? <Map /> : null}
+        {route.name === 'security' ? <Security /> : null}
         {route.name === 'settings' ? <Settings /> : null}
       </Shell>
     </FleetProvider>

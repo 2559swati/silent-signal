@@ -231,23 +231,49 @@ export function useAssetDetail(code: string, assets: Asset[]): AssetDetail {
   return useMemo(() => ({ asset, ...state }), [asset, state]);
 }
 
-export function useHealth(): { ok: boolean | null; refresh: () => void } {
-  const [ok, setOk] = useState<boolean | null>(null);
-  const [nonce, setNonce] = useState(0);
+/** Live TEE mode string (e.g. 'demo'); null until loaded or on error. */
+export function useTeeMode(): string | null {
+  const [mode, setMode] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     api
-      .health()
-      .then((h) => {
-        if (!cancelled) setOk(h.status === 'ok');
+      .teeStatus()
+      .then((s) => {
+        if (!cancelled) setMode(s.mode);
       })
       .catch(() => {
-        if (!cancelled) setOk(false);
+        if (!cancelled) setMode(null);
       });
     return () => {
       cancelled = true;
     };
+  }, []);
+  return mode;
+}
+
+export function useHealth(): { ok: boolean | null; refresh: () => void } {
+  const [ok, setOk] = useState<boolean | null>(null);
+  const [nonce, setNonce] = useState(0);
+
+  // Fetch health status; on failure we keep ok = false and retry every 5s
+  useEffect(() => {
+    let cancelled = false;
+    const fetchHealth = async () => {
+      try {
+        const h = await api.health();
+        if (!cancelled) setOk(h.status === 'ok');
+      } catch {
+        if (!cancelled) setOk(false);
+      }
+    };
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 5000); // retry periodically
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [nonce]);
+
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
   return { ok, refresh };
 }

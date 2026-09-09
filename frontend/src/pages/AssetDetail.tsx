@@ -64,7 +64,7 @@ function actionIcon(action: string, index: number): ReactNode {
                 ? Activity
                 : Wrench;
   void ACTION_ICON;
-  return <Icon className="h-4 w-4 text-sky-400" aria-hidden />;
+  return <Icon className="h-4 w-4 text-sky-600" aria-hidden />;
 }
 
 export default function AssetDetail({ code }: { code: string }): ReactNode {
@@ -76,9 +76,9 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
   if (!detail.loading && detail.notFound) {
     return (
       <div className="space-y-4 animate-rise">
-        <h2 className="text-2xl font-extrabold text-white">Asset not found.</h2>
+        <h2 className="text-2xl font-extrabold text-slate-900">Asset not found.</h2>
         <EmptyState message={`No asset "${code}" exists in the monitored fleet.`} />
-        <a href="#/assets" className="inline-block text-sm font-bold text-sky-400 hover:text-sky-300">
+        <a href="#/assets" className="inline-block text-sm font-bold text-sky-600 hover:text-sky-700">
           ← Back to assets
         </a>
       </div>
@@ -103,7 +103,7 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
           message={detail.error ?? 'Live evidence for this asset is unavailable.'}
           onRetry={() => window.location.reload()}
         />
-        <a href="#/assets" className="inline-block text-sm font-bold text-sky-400 hover:text-sky-300">
+        <a href="#/assets" className="inline-block text-sm font-bold text-sky-600 hover:text-sky-700">
           ← Back to assets
         </a>
       </div>
@@ -120,7 +120,7 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
           <p className="text-[11px] font-bold tracking-[0.22em] text-slate-500">
             STREETLIGHT · DAY {risk.day}
           </p>
-          <h2 className="font-mono text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h2 className="font-mono text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             {asset.external_code}
           </h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -142,7 +142,7 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
         </Card>
       </div>
 
-      <p className="border-l-2 border-sky-500/60 pl-3 text-sm font-semibold text-slate-300">
+      <p className="border-l-2 border-sky-500/60 pl-3 text-sm font-semibold text-slate-600">
         {risk.risk_level === 'CRITICAL'
           ? 'Immediate preventive attention recommended.'
           : risk.risk_level === 'HIGH'
@@ -198,32 +198,32 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
       </section>
 
       {/* WHY hero */}
-      <section aria-label="Why is this asset at risk">
-        <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">WHY IS THIS ASSET AT RISK?</h2>
-        <p className="mt-1 max-w-3xl text-sm text-slate-400">
+      <section aria-label="Why is this asset at risk" className="rise-item" style={{ '--d': '120ms' } as React.CSSProperties}>
+        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">WHY IS THIS ASSET AT RISK?</h2>
+        <p className="mt-1 max-w-3xl text-sm text-slate-500">
           SilentSignal combines multiple weak signals instead of relying on a single abnormal reading.
           {explanation ? ` ${explanation.summary}` : ''}
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {explanation ? (
-            explanation.factors.map((f) => {
+            explanation.factors.map((f, i) => {
               const Icon = SIGNAL_ICON[f.signal] ?? Activity;
               return (
-                <Card key={f.signal} className="p-4">
+                <Card key={f.signal} className="rise-item card-lift p-4 hover:-translate-y-0.5" style={{ '--d': `${Math.min(i * 70, 350)}ms` } as React.CSSProperties}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2">
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-edge bg-panel-2">
-                        <Icon className="h-4 w-4 text-sky-400" aria-hidden />
+                        <Icon className="h-4 w-4 text-sky-600" aria-hidden />
                       </span>
-                      <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+                      <span className="text-xs font-bold tracking-widest text-slate-500 uppercase">
                         {f.signal === 'temperature' ? 'Temperature behavior' : f.signal === 'neighbor' ? 'Neighbor correlation' : f.signal}
                       </span>
                     </span>
                     <SeverityBadge severity={f.severity as Severity} />
                   </div>
-                  <p className="mt-2 font-mono text-2xl font-extrabold text-white">{formatPct(f.score)}</p>
+                  <p className="mt-2 font-mono text-2xl font-extrabold text-slate-900">{formatPct(f.score)}</p>
                   <ScoreBar score={f.score} tone="risk" />
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">{f.reason}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{f.reason}</p>
                 </Card>
               );
             })
@@ -234,14 +234,14 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
       </section>
 
       {/* Persistence */}
-      <Card className="p-5">
+      <Card className="rise-item p-5" style={{ '--d': '180ms' } as React.CSSProperties}>
         <SectionHeader title="Sustained behavior" subtitle="Elevated behavior over consecutive days (live evidence)." />
         {explanation ? (
           <div className="flex flex-wrap items-center gap-4">
             <StreakDots days={streak} />
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-slate-600">
               Elevated behavior sustained for{' '}
-              <span className="font-extrabold text-white">{streak} day{streak === 1 ? '' : 's'}</span>
+              <span className="font-extrabold text-slate-900">{streak} day{streak === 1 ? '' : 's'}</span>
               {risk.persistence_score > 0 ? (
                 <span className="text-slate-500"> · persistence score {risk.persistence_score.toFixed(2)}</span>
               ) : null}
@@ -253,14 +253,14 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
       </Card>
 
       {/* Preventive action hero */}
-      <section aria-label="Preventive action">
-        <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">PREVENTIVE ACTION</h2>
-        <p className="mt-1 text-sm text-slate-400">What should the maintenance team do next?</p>
+      <section aria-label="Preventive action" className="rise-item" style={{ '--d': '240ms' } as React.CSSProperties}>
+        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">PREVENTIVE ACTION</h2>
+        <p className="mt-1 text-sm text-slate-500">What should the maintenance team do next?</p>
         {recommendations ? (
           <Card className="mt-4 border-sky-500/25 p-5">
             <div className="flex flex-wrap items-center gap-2">
               <RiskBadge level={risk.risk_level} />
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm font-bold text-slate-900">
                 Priority: {recommendations.priority}
               </span>
               <UrgencyBadge urgency={recommendations.urgency} />
@@ -270,14 +270,15 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
               {recommendations.recommendations.map((rec, i) => (
                 <li
                   key={i}
-                  className={`flex items-start gap-3 rounded-xl border p-3 ${
+                  className={`rise-item flex items-start gap-3 rounded-xl border p-3 ${
                     i === 0 ? 'border-sky-500/30 bg-sky-500/[0.07]' : 'border-edge bg-panel-2/60'
                   }`}
+                  style={{ '--d': `${Math.min(i * 60, 300)}ms` } as React.CSSProperties}
                 >
                   <span className="mt-0.5">{actionIcon(rec.action, i)}</span>
                   <span>
-                    <span className="block text-sm font-bold text-white">{rec.action}</span>
-                    <span className="mt-0.5 block text-xs leading-relaxed text-slate-400">{rec.reason}</span>
+                    <span className="block text-sm font-bold text-slate-900">{rec.action}</span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{rec.reason}</span>
                   </span>
                 </li>
               ))}
@@ -290,7 +291,7 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
         )}
       </section>
 
-      <a href="#/assets" className="inline-block text-sm font-bold text-sky-400 hover:text-sky-300">
+      <a href="#/assets" className="inline-block text-sm font-bold text-sky-600 hover:text-sky-700">
         ← Back to assets
       </a>
     </div>
@@ -301,7 +302,7 @@ function Contrib({ label, value }: { label: string; value: number }): React.Reac
   return (
     <div className="flex items-center justify-between gap-6">
       <span className="text-slate-500">{label}</span>
-      <span className="font-mono font-bold text-slate-200">{formatPct(value)}</span>
+      <span className="font-mono font-bold text-slate-700">{formatPct(value)}</span>
     </div>
   );
 }

@@ -7,6 +7,7 @@ from app.models.sensor_readings import SensorReading
 from app.models.anomalies import AnomalyResult
 from ml.anomaly import _train_and_score
 from ml.features import build_features
+# pyrefly: ignore [missing-import]
 from sqlalchemy import func
 
 def main():

@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { computeFleetStats, useFleet, type FleetState, type FleetStats } from './lib/fleet';
 
-const FleetContext = createContext<(FleetState & { stats: FleetStats }) | null>(null);
+export const FleetContext = createContext<(FleetState & { stats: FleetStats }) | null>(null);
 
 export function FleetProvider({ children }: { children: ReactNode }): ReactNode {
   const fleet = useFleet();

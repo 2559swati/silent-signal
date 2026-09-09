@@ -8,7 +8,7 @@ function Row({ label, value, mono = false }: { label: string; value: string; mon
   return (
     <div className="flex items-center justify-between gap-4 border-b border-edge-soft py-2.5 text-sm last:border-0">
       <span className="text-slate-500">{label}</span>
-      <span className={`text-right font-bold text-slate-100 ${mono ? 'font-mono' : ''}`}>{value}</span>
+      <span className={`text-right font-bold text-slate-800 ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
   );
 }
@@ -51,7 +51,7 @@ export default function Settings(): ReactNode {
             <button
               type="button"
               onClick={refresh}
-              className="rounded-lg border border-edge bg-panel-2 px-4 py-2 text-sm font-semibold text-white transition hover:border-accent/60"
+              className="rounded-lg border border-edge bg-panel-2 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-accent/60"
             >
               Refresh status
             </button>
@@ -80,7 +80,7 @@ export default function Settings(): ReactNode {
         >
           {resetting ? 'Resetting…' : 'POST /api/demo/reset'}
         </button>
-        {resetMsg ? <p className="mt-3 text-sm font-semibold text-emerald-300">{resetMsg}</p> : null}
+        {resetMsg ? <p className="mt-3 text-sm font-semibold text-emerald-600">{resetMsg}</p> : null}
         {resetError ? (
           <div className="mt-3">
             <ErrorState message={resetError} onRetry={doReset} />

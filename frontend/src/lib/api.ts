@@ -1,18 +1,24 @@
 import type {
   AnomalyResult,
   ExplanationResult,
+  FleetAlertsResponse,
   FusionResult,
   HealthResponse,
+  MapResponse,
   PaginatedAssets,
   RecommendationResult,
   ResetResponse,
   RiskResult,
+  TEEStatus,
+  AttestationStatus,
 } from './types';
 
-// Base URL for the FastAPI backend. The browser (host) talks to
-// localhost:8000; override with VITE_API_URL for other environments.
+// Base URL for the FastAPI backend. Same-origin by default: in Compose,
+// nginx proxies /api/* to the backend container, so the UI works from any
+// host URL. Set VITE_API_URL only to point the UI at a remote backend
+// (e.g. local `npm run dev` against http://localhost:8000 via vite proxy).
 export const API_BASE: string =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+  import.meta.env.VITE_API_URL ?? '';
 
 export class ApiError extends Error {
   status: number;
@@ -84,4 +90,12 @@ export const api = {
     fetchJson<AnomalyResult>(
       `/api/assets/${encodeURIComponent(assetUuid)}/anomaly`,
     ),
+  map: () => fetchJson<MapResponse>('/api/map'),
+  alerts: () => fetchJson<FleetAlertsResponse>('/api/alerts'),
+  assetAlerts: (assetId: string) =>
+    fetchJson<{ alerts: FleetAlertsResponse['alerts']; total_alerts: number }>(
+      `/api/assets/${encodeURIComponent(assetId)}/alerts`,
+    ),
+  teeStatus: () => fetchJson<TEEStatus>('/api/security/tee-status'),
+  attestation: () => fetchJson<AttestationStatus>('/api/security/attestation'),
 };

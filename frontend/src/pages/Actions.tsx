@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Card, EmptyState, ErrorState, RiskBadge, SectionHeader, UrgencyBadge } from '../components/ui';
 import { useFleetContext } from '../state';
 import { api } from '../lib/api';
@@ -45,22 +45,22 @@ function GroupSection({ level, title, hint }: { level: RiskLevel; title: string;
     <section aria-label={`${title} actions`}>
       <SectionHeader title={`${title} (${list.length}${level === 'LOW' ? ' shown' : ''})`} subtitle={hint} />
       <ul className="grid gap-3 md:grid-cols-2">
-        {list.map(({ asset, risk }) => {
+        {list.map(({ asset, risk }, i) => {
           const rec = details[asset.external_code];
           return (
-            <li key={asset.id}>
-              <Card className="p-4">
+            <li key={asset.id} className="rise-item" style={{ '--d': `${Math.min(i * 60, 300)}ms` } as CSSProperties}>
+              <Card hover className="card-lift p-4 hover:-translate-y-0.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => navigate({ name: 'asset', code: asset.external_code })}
-                    className="font-mono text-sm font-extrabold text-white hover:text-sky-300"
+                    className="font-mono text-sm font-extrabold text-slate-900 hover:text-sky-700"
                   >
                     {asset.external_code}
                   </button>
                   {risk ? <RiskBadge level={risk.risk_level} /> : null}
                   {rec ? <UrgencyBadge urgency={rec.urgency} /> : null}
-                  <span className="ml-auto font-mono text-sm font-bold text-slate-300">
+                  <span className="ml-auto font-mono text-sm font-bold text-slate-600">
                     {risk ? formatPct(risk.risk_score) : '—'}
                   </span>
                 </div>
@@ -68,12 +68,12 @@ function GroupSection({ level, title, hint }: { level: RiskLevel; title: string;
                   <ul className="mt-3 space-y-1.5">
                     {rec.recommendations.slice(0, 3).map((r, i) => (
                       <li key={i} className="rounded-lg border border-edge-soft bg-panel-2/60 px-2.5 py-2 text-xs">
-                        <span className="block font-bold text-slate-200">{r.action}</span>
+                        <span className="block font-bold text-slate-700">{r.action}</span>
                         {i === 0 ? null : <span className="mt-0.5 block text-slate-500">{r.reason}</span>}
                       </li>
                     ))}
                     {rec.recommendations.length > 3 ? (
-                      <li className="text-[11px] font-semibold text-sky-400">
+                      <li className="text-[11px] font-semibold text-sky-600">
                         +{rec.recommendations.length - 3} more actions — open asset detail
                       </li>
                     ) : null}
@@ -82,7 +82,7 @@ function GroupSection({ level, title, hint }: { level: RiskLevel; title: string;
                   <p className="mt-3 text-xs text-slate-600">Loading actions…</p>
                 )}
                 <p className="mt-2 text-[11px] text-slate-500">
-                  Priority: <span className="font-bold text-slate-300">{rec ? rec.priority : '…'}</span>
+                  Priority: <span className="font-bold text-slate-600">{rec ? rec.priority : '…'}</span>
                   {risk ? ` · sustained ${risk.persistence_score.toFixed(2)}` : ''}
                 </p>
               </Card>
@@ -104,8 +104,8 @@ export default function Actions(): ReactNode {
   return (
     <div className="space-y-6 animate-rise">
       <div>
-        <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">PREVENTIVE ACTION CENTER</h2>
-        <p className="mt-1 max-w-3xl text-sm text-slate-400">
+        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">PREVENTIVE ACTION CENTER</h2>
+        <p className="mt-1 max-w-3xl text-sm text-slate-500">
           Operational queue generated live from the recommendation engine — critical first, every
           action backed by evidence.
         </p>
@@ -123,17 +123,17 @@ export default function Actions(): ReactNode {
       ) : (
         <>
           {top?.risk ? (
-            <Card className="border-red-500/30 p-5">
+            <Card className={`p-5 ${top.risk.risk_level === 'CRITICAL' || top.risk.risk_level === 'HIGH' ? 'attention-calm' : 'border-red-500/30'}`}>
               <div className="flex flex-wrap items-center gap-3">
                 <RiskBadge level={top.risk.risk_level} />
                 <button
                   type="button"
                   onClick={() => navigate({ name: 'asset', code: top.asset.external_code })}
-                  className="font-mono text-xl font-extrabold text-white hover:text-sky-300"
+                  className="font-mono text-xl font-extrabold text-slate-900 hover:text-sky-700"
                 >
                   {top.asset.external_code}
                 </button>
-                <span className="font-mono text-xl font-extrabold text-red-300">
+                <span className="font-mono text-xl font-extrabold text-red-600">
                   {formatPct(top.risk.risk_score)}
                 </span>
                 <span className="ml-auto text-xs text-slate-500">Highest risk right now — start here.</span>

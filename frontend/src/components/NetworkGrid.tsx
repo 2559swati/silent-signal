@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { gridPosition, type FleetEntry } from '../lib/fleet';
 import type { FusionStatus } from '../lib/types';
 import { navigate } from '../lib/router';
@@ -46,7 +46,7 @@ export default function NetworkGrid({
       >
         {/* street lines */}
         {Array.from({ length: 10 }).map((_, i) => (
-          <g key={i} stroke="#1a2230" strokeWidth={i % 3 === 0 ? 3 : 1.2}>
+          <g key={i} stroke="#c9d4e5" strokeWidth={i % 3 === 0 ? 3 : 1.2}>
             <line x1={pad} y1={pad + i * step} x2={size - pad} y2={pad + i * step} />
             <line x1={pad + i * step} y1={pad} x2={pad + i * step} y2={size - pad} />
           </g>
@@ -59,8 +59,9 @@ export default function NetworkGrid({
           const isHl = highlight === code;
           const risk = entry?.risk?.risk_score ?? 0;
           const r = 5 + risk * 5;
+          const popDelay = `${Math.min((row + col) * 22, 400)}ms`;
           return (
-            <g key={code}>
+            <g key={code} className="node-pop" style={{ '--d': popDelay } as CSSProperties}>
               {st === 'CRITICAL' ? (
                 <circle cx={cx} cy={cy} r={r + 5} fill={fill} opacity={0.18}>
                   <animate attributeName="opacity" values="0.25;0.08;0.25" dur="2.2s" repeatCount="indefinite" />
@@ -91,7 +92,7 @@ export default function NetworkGrid({
           );
         })}
       </svg>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-400" aria-label="Legend">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-500" aria-label="Legend">
         {(['NORMAL', 'WATCH', 'EMERGING', 'CRITICAL'] as FusionStatus[]).map((s) => (
           <span key={s} className="inline-flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: NODE_FILL[s] }} aria-hidden />

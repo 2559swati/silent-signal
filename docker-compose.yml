@@ -1,19 +1,18 @@
-version: '3.8'
-
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # Same-origin default (empty): the browser calls /api/* on the UI's
+        # own host, and nginx proxies it to the backend container. Set
+        # VITE_API_URL only to bake in a fixed remote backend URL.
+        - VITE_API_URL=${VITE_API_URL:-}
     ports:
-      - "5173:5173"
-    environment:
-      # Host browsers open the UI on localhost, so the API base must be a
-      # host-reachable URL (the in-network name "backend" does not resolve
-      # in the judge's browser).
-      - VITE_API_URL=http://localhost:8000
+      - "5173:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   backend:
     build:
@@ -22,8 +21,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Local Compose demo defaults to the Demo TEE provider. Real Nitro
+      # (Phase 12/13) stays out-of-band: set TEE_MODE=nitro only on a
+      # Nitro EC2 parent, never here.
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - TEE_MODE=${TEE_MODE:-off}
+      - TEE_MODE=${TEE_MODE:-demo}
     volumes:
       - ./backend:/app
       - ./data:/app/data

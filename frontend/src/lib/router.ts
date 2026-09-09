@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 // Minimal hash router: #/ #/assets #/asset/CODE #/risk #/explanations
-// #/actions #/settings. Zero dependencies, deterministic.
+// #/actions #/map #/security #/settings. Zero dependencies, deterministic.
 
 export type Route =
   | { name: 'dashboard' }
@@ -10,6 +10,8 @@ export type Route =
   | { name: 'risk' }
   | { name: 'explanations' }
   | { name: 'actions' }
+  | { name: 'map' }
+  | { name: 'security' }
   | { name: 'settings' };
 
 export function parseHash(hash: string): Route {
@@ -27,6 +29,10 @@ export function parseHash(hash: string): Route {
       return { name: 'explanations' };
     case '/actions':
       return { name: 'actions' };
+    case '/map':
+      return { name: 'map' };
+    case '/security':
+      return { name: 'security' };
     case '/settings':
       return { name: 'settings' };
     default:
@@ -48,6 +54,10 @@ export function routeHref(route: Route): string {
       return '#/explanations';
     case 'actions':
       return '#/actions';
+    case 'map':
+      return '#/map';
+    case 'security':
+      return '#/security';
     case 'settings':
       return '#/settings';
   }
