@@ -34,4 +34,4 @@ python -m pip install --upgrade pip
 python -m pip install -r "$PSScriptRoot\requirements.txt"
 
 # Run FastAPI with uvicorn
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload

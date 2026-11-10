@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-}
+    # Render will route traffic to this service.
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - TEE_MODE=demo
+    # No need for healthcheck here; Render will monitor.
+
+  # Note: PostgreSQL will be provisioned as a managed service on Render; not defined here.

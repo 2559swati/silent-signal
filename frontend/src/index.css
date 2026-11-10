@@ -328,6 +328,17 @@ button:active {
   border-top: 12px solid #0ea5e9;
 }
 
+/* Public-infrastructure marker: neutral gray square, visually distinct
+   from round SilentSignal asset markers. */
+.infra-pin {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #94a3b8;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.4);
+}
+
 /* Current-location dot (browser geolocation). */
 .geo-pin {
   width: 30px;

@@ -20,6 +20,7 @@ class MapAsset(BaseModel):
     fusion_score: Optional[float] = Field(None, ge=0.0, le=1.0)
     risk_level: Optional[str] = Field(None, description="Latest Phase 5 risk level")
     risk_score: Optional[float] = Field(None, ge=0.0, le=1.0)
+    infra_source: Optional[str] = Field(None, description="Map registration provenance ('osm:<id>'), if registered from public map data")
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -7,7 +7,10 @@ from typing import Generator
 from app.core.config import settings
 
 import os
-engine = create_engine(os.getenv('TEST_DATABASE_URL', settings.DATABASE_URL))
+db_url = os.getenv('TEST_DATABASE_URL', settings.DATABASE_URL)
+# SQLite needs check_same_thread=False for FastAPI/uvicorn threads.
+connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+engine = create_engine(db_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

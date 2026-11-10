@@ -1,5 +1,6 @@
 import type {
   AnomalyResult,
+  CostResponse,
   ExplanationResult,
   FleetAlertsResponse,
   FusionResult,
@@ -98,4 +99,6 @@ export const api = {
     ),
   teeStatus: () => fetchJson<TEEStatus>('/api/security/tee-status'),
   attestation: () => fetchJson<AttestationStatus>('/api/security/attestation'),
+  // Cost-aware recommendation endpoint
+  cost: (assetId: string) => fetchJson<CostResponse>(`/api/assets/${encodeURIComponent(assetId)}/cost`),
 };

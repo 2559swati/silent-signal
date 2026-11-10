@@ -22,6 +22,7 @@ import {
   StreakDots,
   UrgencyBadge,
 } from '../components/ui';
+import CostRecommendation from '../components/CostRecommendation';
 import { AssetPipeline } from '../components/Pipeline';
 import { useFleetContext } from '../state';
 import { formatPct, formatScore, useAssetDetail } from '../lib/fleet';
@@ -251,6 +252,9 @@ export default function AssetDetail({ code }: { code: string }): ReactNode {
           <EmptyState message="Persistence evidence is unavailable." />
         )}
       </Card>
+
+      {/* Cost-Aware Recommendation */}
+      <CostRecommendation assetId={asset.id} />
 
       {/* Preventive action hero */}
       <section aria-label="Preventive action" className="rise-item" style={{ '--d': '240ms' } as React.CSSProperties}>

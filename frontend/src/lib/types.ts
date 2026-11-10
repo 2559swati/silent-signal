@@ -1,7 +1,35 @@
 // Backend response shapes (mirror backend Pydantic schemas). No dummy data.
 
 export type Phase2Status = 'healthy' | 'watch' | 'emerging' | 'critical';
-export type FusionStatus = 'NORMAL' | 'WATCH' | 'EMERGING' | 'CRITICAL';
+export type FusionStatus = 'NORMAL' | 'WATCH' | 'EMERGING' | 'CRITICAL';/* duplicated type definitions removed */
+export interface CostResponse {
+  asset_id: string;
+  asset_external_code: string;
+  day: string; // ISO date
+  risk_score: number;
+  risk_level: string;
+  cost_now: number;
+  inspection_cost: number;
+  planned_repair_cost: number;
+  failure_consequence_cost: number;
+  expected_waiting_cost: number;
+  expected_saving: number;
+  decision: string; // "ACT_NOW" | "MONITOR"
+  model_version: string;
+  assumption_note: string;
+  cost_data_available: boolean;
+}
+
+export interface CostUnavailable {
+  asset_id: string;
+  asset_external_code: string;
+  cost_data_available: false;
+  detail?: string;
+  assumption_note?: string;
+}
+
+
+
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type Severity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -115,6 +143,7 @@ export interface MapAsset {
   fusion_score: number | null;
   risk_level: string | null;
   risk_score: number | null;
+  infra_source?: string | null;
 }
 
 export interface MapResponse {

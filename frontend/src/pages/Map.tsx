@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { MapContainer, Marker, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,6 +17,15 @@ import {
   type GeocodeResult,
   type RiskBand,
 } from '../lib/geo';
+import {
+  SIMULATED_LABEL,
+  clearInfraCache,
+  enableDemoTelemetry,
+  queryInfrastructure,
+  registerInfraAsset,
+  telemetryState,
+  type InfraPoint,
+} from '../lib/osm';
 
 // Status colors: the exact UI V1 fusion conventions (NetworkGrid/badges).
 // Legend labels follow the fleet status vocabulary (Healthy/Watch/
@@ -98,6 +107,22 @@ function pinIcon(kind: 'search' | 'me'): L.DivIcon {
   });
 }
 
+const infraIcon = L.divIcon({
+  className: '',
+  html: '<div class="infra-pin" role="img" aria-label="Public infrastructure"></div>',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+  popupAnchor: [0, -8],
+});
+
+function demoBtn(disabled: boolean, warn = false): CSSProperties {
+  return {
+    marginTop: 6, padding: '6px 10px', borderRadius: 8,
+    background: disabled ? '#94a3b8' : warn ? '#b45309' : '#047857',
+    color: '#fff', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+  };
+}
+
 export interface SelectedPoint {
   name: string;
   displayName: string;
@@ -125,6 +150,18 @@ export default function Map(): ReactNode {
   const [geoError, setGeoError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const searchSeq = useRef(0);
+
+  // Public infrastructure layer (explicit opt-in, cached per point).
+  const [infra, setInfra] = useState<InfraPoint[]>([]);
+  const [infraLoading, setInfraLoading] = useState(false);
+  const [infraError, setInfraError] = useState<string | null>(null);
+  const [infraLoaded, setInfraLoaded] = useState(false);
+  const [registered, setRegistered] = useState<Record<string, string>>({});
+  const [registering, setRegistering] = useState<string | null>(null);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [demoModes, setDemoModes] = useState<Record<string, 'normal' | 'anomalous'>>({});
+  const [demoSaving, setDemoSaving] = useState<string | null>(null);
+  const [demoError, setDemoError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -257,6 +294,25 @@ export default function Map(): ReactNode {
     );
   }
 
+  function enableDemo(osmId: string, externalCode: string, mode: 'normal' | 'anomalous'): void {
+    if (demoSaving) return;
+    setDemoSaving(osmId);
+    setDemoError(null);
+    enableDemoTelemetry(externalCode, mode)
+      .then((res) => {
+        setDemoModes((prev) => ({ ...prev, [osmId]: res.mode }));
+        setDemoSaving(null);
+        api
+          .map()
+          .then((mapRes) => setAssets(mapRes.assets))
+          .catch(() => {});
+      })
+      .catch(() => {
+        setDemoSaving(null);
+        setDemoError('Could not enable demo telemetry. Please try again.');
+      });
+  }
+
   function clearAll(): void {
     setQuery('');
     setResults([]);
@@ -266,6 +322,47 @@ export default function Map(): ReactNode {
     setRadiusKm(10);
     setBands({ ...ALL_BANDS });
     setGeoError(null);
+    setInfra([]);
+    setInfraError(null);
+    setInfraLoaded(false);
+    setRegError(null);
+    clearInfraCache();
+  }
+
+  function loadInfrastructure(): void {
+    if (!selected || infraLoading) return;
+    setInfraLoading(true);
+    setInfraError(null);
+    queryInfrastructure(selected.lat, selected.lon, radiusKm)
+      .then((points) => {
+        setInfra(points);
+        setInfraLoaded(true);
+        setInfraLoading(false);
+      })
+      .catch(() => {
+        setInfraLoading(false);
+        setInfraError('Public infrastructure is unavailable right now. The SilentSignal map still works.');
+      });
+  }
+
+  function registerPoint(point: InfraPoint): void {
+    if (registering) return;
+    setRegistering(point.osmId);
+    setRegError(null);
+    registerInfraAsset(point)
+      .then((created) => {
+        setRegistered((prev) => ({ ...prev, [point.osmId]: created.external_code }));
+        setRegistering(null);
+        // Pick up the new asset marker (stored coordinates, no telemetry yet).
+        api
+          .map()
+          .then((res) => setAssets(res.assets))
+          .catch(() => {});
+      })
+      .catch((err: unknown) => {
+        setRegistering(null);
+        setRegError(err instanceof Error ? err.message : 'Registration failed.');
+      });
   }
 
   // Nearby intelligence: real haversine over API coordinates, memoized.
@@ -298,6 +395,15 @@ export default function Map(): ReactNode {
 
   const searchPin = useMemo(() => pinIcon('search'), []);
   const mePin = useMemo(() => pinIcon('me'), []);
+
+  // A new selected point invalidates the previously loaded public layer.
+  const selectedKey = selected ? `${selected.lat},${selected.lon}` : null;
+  useEffect(() => {
+    setInfra([]);
+    setInfraLoaded(false);
+    setInfraError(null);
+    setRegError(null);
+  }, [selectedKey]);
 
   if (error) {
     return (
@@ -464,6 +570,67 @@ export default function Map(): ReactNode {
                 </Popup>
               </Marker>
             ) : null}
+            {infra.map((p) => (
+              <Marker key={p.osmId} position={[p.lat, p.lon]} icon={infraIcon}>
+                <Popup>
+                  <div style={{ minWidth: 180 }}>
+                    <strong>{p.label}</strong>
+                    <br />
+                    <span style={{ fontSize: 12 }}>
+                      {p.lat.toFixed(5)}, {p.lon.toFixed(5)}
+                    </span>
+                    <br />
+                    <span style={{ fontSize: 12 }}>Source: OpenStreetMap ({p.osmId})</span>
+                    <br />
+                    {registered[p.osmId] ? (
+                      <span style={{ fontSize: 12 }}>
+                        Registered as <strong style={{ fontFamily: 'monospace' }}>{registered[p.osmId]}</strong>
+                        <br />
+                        {demoModes[p.osmId] ? (
+                          <>
+                            Demo telemetry: <strong>{demoModes[p.osmId].toUpperCase()}</strong>
+                            <br />
+                            {SIMULATED_LABEL}. No physical sensor installed.
+                          </>
+                        ) : (
+                          'Telemetry not connected.'
+                        )}
+                        <br />
+                        <button
+                          type="button"
+                          disabled={demoSaving === p.osmId}
+                          onClick={() => enableDemo(p.osmId, registered[p.osmId], 'normal')}
+                          style={demoBtn(demoSaving === p.osmId)}
+                        >
+                          {demoSaving === p.osmId ? 'Working...' : 'Simulate normal'}
+                        </button>{' '}
+                        <button
+                          type="button"
+                          disabled={demoSaving === p.osmId}
+                          onClick={() => enableDemo(p.osmId, registered[p.osmId], 'anomalous')}
+                          style={demoBtn(demoSaving === p.osmId, true)}
+                        >
+                          {demoSaving === p.osmId ? 'Working...' : 'Simulate anomaly'}
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={registering === p.osmId}
+                        onClick={() => registerPoint(p)}
+                        style={{
+                          marginTop: 6, padding: '6px 10px', borderRadius: 8,
+                          background: registering === p.osmId ? '#94a3b8' : '#0284c7',
+                          color: '#fff', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                        }}
+                      >
+                        {registering === p.osmId ? 'Registering...' : 'Register as SilentSignal Asset'}
+                      </button>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
             {plotted.map((a) => {
               const isFocus = !selected && focus !== null && a.external_code === focus.external_code;
               const band = bandOf(a);
@@ -502,6 +669,18 @@ export default function Map(): ReactNode {
                           {distance.toFixed(1)} km from selected location
                         </>
                       ) : null}
+                      {telemetryState(a) === 'not-connected' ? (
+                        <>
+                          <br />
+                          Telemetry not connected.
+                        </>
+                      ) : null}
+                      {telemetryState(a) === 'simulated' ? (
+                        <>
+                          <br />
+                          {SIMULATED_LABEL}.
+                        </>
+                      ) : null}
                       <br />
                       <a href={routeHref({ name: 'asset', code: a.external_code })}>View Risk Details →</a>
                     </div>
@@ -526,6 +705,16 @@ export default function Map(): ReactNode {
                   {item.label}
                 </li>
               ))}
+              <li className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                <span className="inline-block h-2.5 w-2.5 rounded-[3px] bg-slate-400" aria-hidden />
+                Public infrastructure
+              </li>
+              {selected ? (
+                <li className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-indigo-500" aria-hidden />
+                  Selected location
+                </li>
+              ) : null}
             </ul>
           </div>
           {/* Focus badge */}
@@ -590,6 +779,46 @@ export default function Map(): ReactNode {
             </label>
           ))}
         </div>
+
+        <h3 className="mt-4 text-sm font-extrabold tracking-tight text-slate-900">Public infrastructure</h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+          OpenStreetMap street lights &amp; poles near the selected point. Public metadata only —
+          not live telemetry.
+        </p>
+        <button
+          type="button"
+          onClick={loadInfrastructure}
+          disabled={!selected || infraLoading}
+          title={!selected ? 'Select a location first' : 'Load mapped poles and street lights nearby'}
+          className="mt-2 w-full rounded-xl border border-edge bg-panel-2 px-3 py-2 text-xs font-bold text-slate-900 transition hover:border-sky-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {!selected
+            ? 'Select a location first'
+            : infraLoading
+              ? 'Loading public data...'
+              : infraLoaded
+                ? `Reload public data (${infra.length})`
+                : 'Load public infrastructure'}
+        </button>
+        {infraError ? (
+          <p role="alert" className="mt-2 text-[11px] font-semibold text-amber-700">
+            {infraError}
+          </p>
+        ) : null}
+        {regError ? (
+          <p role="alert" className="mt-2 text-[11px] font-semibold text-red-600">
+            Registration failed: {regError === 'already registered' ? 'this point is already registered.' : 'please try again.'}
+          </p>
+        ) : null}
+        {demoError ? (
+          <p role="alert" className="mt-2 text-[11px] font-semibold text-red-600">
+            {demoError}
+          </p>
+        ) : null}
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+          Public infrastructure locations are sourced from OpenStreetMap. Telemetry shown in
+          this hackathon demo is simulated because physical sensors are not connected.
+        </p>
 
         <h3 className="mt-4 text-sm font-extrabold tracking-tight text-slate-900">Area summary</h3>
         {!selected ? (

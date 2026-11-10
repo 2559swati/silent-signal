@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, CheckConstraint, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, CheckConstraint, ForeignKey
 
 from sqlalchemy.orm import relationship
 import uuid
@@ -19,6 +19,12 @@ class Asset(Base):
     criticality = Column(Integer, nullable=False)
     public_exposure = Column(Integer, nullable=False)
     status = Column(String, nullable=False)
+    # Optional geographic registration (map feature only; NULL for all
+    # seeded/demo assets). infra_source 'osm:<id>' is unique per migration.
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    infra_type = Column(String, nullable=True)
+    infra_source = Column(String, nullable=True, unique=True)
 
     sensor_readings = relationship("SensorReading", back_populates="asset", cascade="all, delete-orphan")
     maintenance_records = relationship("MaintenanceRecord", back_populates="asset", cascade="all, delete-orphan")

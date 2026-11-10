@@ -62,7 +62,12 @@ def get_map(db: Session = Depends(get_db)):
 
     items = []
     for asset in assets:
-        lat, lon = grid_latlon(asset.external_code)
+        # Registered map assets carry real coordinates; everything else
+        # keeps the documented grid derivation (seeded/demo behavior intact).
+        if asset.latitude is not None and asset.longitude is not None:
+            lat, lon = asset.latitude, asset.longitude
+        else:
+            lat, lon = grid_latlon(asset.external_code)
         fusion = latest_fusion.get(asset.id)
         risk = latest_risk.get(asset.id)
         items.append(
@@ -76,6 +81,7 @@ def get_map(db: Session = Depends(get_db)):
                 fusion_score=fusion.raw_score if fusion else None,
                 risk_level=risk.risk_level if risk else None,
                 risk_score=risk.risk_score if risk else None,
+                infra_source=asset.infra_source,
             )
         )
     return MapResponse(assets=items, total=len(items))

@@ -67,7 +67,31 @@ Day 0 seeds both EMA and confirmed status (no history to delay against).
 from bisect import bisect_left
 from datetime import timedelta
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    # Minimal shim for required numpy functionality
+    class _NumpyShim:
+        @staticmethod
+        def percentile(data, q):
+            """Compute percentile using linear interpolation (approx)."""
+            if not data:
+                return 0.0
+            sorted_data = sorted(data)
+            # q as percentile (0-100)
+            pos = (len(sorted_data) - 1) * q / 100.0
+            lower = int(pos)
+            upper = min(lower + 1, len(sorted_data) - 1)
+            if lower == upper:
+                return float(sorted_data[lower])
+            weight = pos - lower
+            return float(sorted_data[lower] * (1 - weight) + sorted_data[upper] * weight)
+        class random:
+            @staticmethod
+            def default_rng(seed=None):
+                import random as _random
+                return _random.Random(seed)
+    np = _NumpyShim()
 import pandas as pd
 from sqlalchemy.orm import Session
 
