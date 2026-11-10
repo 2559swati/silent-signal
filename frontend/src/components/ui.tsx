@@ -153,7 +153,7 @@ export function Skeleton({ className = '' }: { className?: string }): ReactNode 
   return <div aria-hidden className={`skeleton rounded-xl ${className}`} />;
 }
 
-export function CardSkeleton({ lines = 3, className = '' }: { lines?: number; className?: string }): ReactNode {
+export function CardSkeleton({ lines = 3 }: { lines?: number; className?: string }): ReactNode {
   return (
     <Card className="p-5" >
       <Skeleton className="mb-3 h-5 w-1/3" />
